@@ -17,6 +17,8 @@ pipeline {
                 stage("test1") {
                     steps {
                         echo 'test1'
+                        writeFile file: "test1", text: "test1"
+                        stash name: "test1", includes: "test1"
 //                        script {
 //                            throw new Exception("Throw to stop pipeline")
 //                        }
@@ -37,6 +39,8 @@ pipeline {
                 stage("test2") {
                     steps {
                         echo 'test2'
+                        writeFile file: "test2", text: "test2"
+                        stash name: "test2", includes: "test2"
                         script {
                             def test = 2 + 2 > 3 ? 'cool' : 'not cool'
                             echo test
@@ -46,9 +50,11 @@ pipeline {
             }
         }
 
-        stage("deploy") {
+        stage("check files") {
             steps {
-                echo 'deploying the application...'
+                echo 'checking files...'
+                unstash name:"test1"
+                unstash name:"test2"
             }
         }
 
