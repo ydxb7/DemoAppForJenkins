@@ -6,7 +6,7 @@ pipeline {
     }
 
     stages {
-        stage ("build") {
+        stage("build") {
             steps {
                 echo 'building the app...'
             }
@@ -57,8 +57,8 @@ pipeline {
         stage("check files") {
             steps {
                 echo 'checking files...'
-                unstash name:"test1"
-                unstash name:"test2"
+                unstash name: "test1"
+                unstash name: "test2"
             }
         }
 
@@ -71,14 +71,13 @@ pipeline {
 }
 
 def testWithCheck(String blockName, Closure closure) {
-    script {
-        try {
-            echo "try to unstash ${blockName}"
-            unstash name:"${blockName}"
-            echo "${blockName} already exist, skip testing it again"
-        } catch (Exception e) {
-            echo "testing ${blockName}"
-            closure.call()
-        }
+    try {
+        echo "try to unstash ${blockName}"
+        unstash name: "${blockName}"
+        echo "${blockName} already exist, skip testing it again"
+    } catch (Exception e) {
+        echo "testing ${blockName}"
+        closure.call()
     }
+
 }
