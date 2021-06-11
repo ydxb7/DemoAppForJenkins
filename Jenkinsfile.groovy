@@ -13,9 +13,9 @@ pipeline {
                 stage("test1") {
                     steps {
                         echo 'test1'
-                        script {
-                            throw new Exception("Throw to stop pipeline")
-                        }
+//                        script {
+//                            throw new Exception("Throw to stop pipeline")
+//                        }
                     }
                     post {
                         success {
@@ -45,6 +45,12 @@ pipeline {
         stage("deploy") {
             steps {
                 echo 'deploying the application...'
+            }
+        }
+
+        stage("cleanup") {
+            steps {
+                echo 'clean up..'
             }
         }
     }
