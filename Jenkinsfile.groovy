@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     options {
+        timeout(time: 4, unit: 'HOURS')
         preserveStashes()
     }
 
@@ -17,8 +18,16 @@ pipeline {
                 stage("test1") {
                     steps {
                         testWithCheck("test1") {
-                            writeFile file: "test1", text: "test1"
-                            stash name: "test1", includes: "test1"
+                            script {
+                                Random rnd = new Random()
+                                def fail = rnd.nextInt(4) % 2  == 0 ? "fail" : "success"
+                                if (fail == "success") {
+                                    writeFile file: "test1", text: "test1"
+                                    stash name: "test1", includes: "test1"
+                                } else {
+                                    throw new Exception("Throw to stop pipeline")
+                                }
+                            }
                         }
                     }
                     post {
