@@ -17,10 +17,21 @@ pipeline {
                 stage("test1") {
                     steps {
                         echo 'test1'
+//                        writeFile file: "test1", text: "test1"
+//                        stash name: "test1", includes: "test1"
+//                        script {
+//                            throw new Exception("Throw to stop pipeline")
+//                        }
                     }
                     post {
                         success {
                             echo 'I succeeded!'
+                        }
+                        failure {
+                            echo 'I failed :('
+                        }
+                        always {
+                            echo 'always run me..'
                         }
                     }
                 }
