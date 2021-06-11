@@ -13,6 +13,9 @@ pipeline {
                 stage("test1") {
                     steps {
                         echo 'test1'
+                        script {
+                            throw new Exception("Throw to stop pipeline")
+                        }
                     }
                 }
 
