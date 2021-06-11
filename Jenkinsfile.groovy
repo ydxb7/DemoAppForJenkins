@@ -21,6 +21,7 @@ pipeline {
 //                        script {
 //                            throw new Exception("Throw to stop pipeline")
 //                        }
+
                         testWithCheck("test1") {
                             writeFile file: "test1", text: "test1"
                             stash name: "test1", includes: "test1"
@@ -71,6 +72,11 @@ pipeline {
 }
 
 def testWithCheck(String blockName, Closure closure) {
+    File storage = storage(build, name)
+    if (!storage.isFile()) {
+        echo "not exist"
+    }
+
     try {
         echo "try to unstash ${blockName}"
         unstash name: "${blockName}"
