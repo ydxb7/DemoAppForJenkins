@@ -13,8 +13,19 @@ pipeline {
                 stage("test1") {
                     steps {
                         echo 'test1'
-                        script {
-                            throw new Exception("Throw to stop pipeline")
+//                        script {
+//                            throw new Exception("Throw to stop pipeline")
+//                        }
+                    }
+                    post {
+                        success {
+                            echo 'I succeeded!'
+                        }
+                        failure {
+                            echo 'I failed :('
+                        }
+                        always {
+                            echo 'always run me..'
                         }
                     }
                 }
