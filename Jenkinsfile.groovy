@@ -16,16 +16,9 @@ pipeline {
             parallel {
                 stage("test1") {
                     steps {
-                        script {
-                            try {
-                                echo "try to unstash test1"
-                                unstash name: "test1"
-                                echo "test1 already exist, skip testing it again"
-                            } catch (Exception e) {
-                                echo "testing test1"
-                                writeFile file: "test1", text: "test1"
-                                stash name: "test1", includes: "test1"
-                            }
+                        testWithCheck("test1") {
+                            writeFile file: "test1", text: "test1"
+                            stash name: "test1", includes: "test1"
                         }
                     }
                     post {
@@ -73,13 +66,16 @@ pipeline {
 }
 
 def testWithCheck(String blockName, Closure closure) {
-    try {
+    def needTest = true
+    catchError(message: 'check previous build status', stageResult:'SUCCESS', buildResult: 'SUCCESS') {
         echo "try to unstash ${blockName}"
-        unstash name: "${blockName}"
+        unstash name:"${blockName}"
+        needTest = false
         echo "${blockName} already exist, skip testing it again"
-    } catch (Exception e) {
-        echo "testing ${blockName}"
-        closure.call()
     }
 
+    if (needTest) {
+        closure.call()
+        echo "testing ${blockName}"
+    }
 }
