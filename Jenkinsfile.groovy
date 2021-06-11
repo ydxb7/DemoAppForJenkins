@@ -18,20 +18,12 @@ pipeline {
                 stage("test1") {
                     steps {
                         testWithCheck("test1") {
-                            script {
-                                Random rnd = new Random()
-                                def fail = rnd.nextInt(4) % 2  == 0 ? "fail" : "success"
-                                if (fail == "success") {
-                                    writeFile file: "test1", text: "test1"
-                                    stash name: "test1", includes: "test1"
-                                } else {
-                                    throw new Exception("Throw to stop pipeline")
-                                }
-                            }
+                            runTest("test1")
                         }
                     }
                     post {
                         success {
+                            stash name: "test1", includes: "test1.txt"
                             echo 'I succeeded!'
                         }
                         failure {
@@ -86,5 +78,16 @@ def testWithCheck(String blockName, Closure closure) {
     if (needTest) {
         closure.call()
         echo "testing ${blockName}"
+    }
+}
+
+def runTest(String testName) {
+    Random rnd = new Random()
+    def fail = rnd.nextInt(4) % 2  == 0 ? "fail" : "success"
+    if (fail == "success") {
+        echo "testing ${testName}"
+        writeFile file: "${testName}.txt", text: "${testName}"
+    } else {
+        throw new Exception("Throw to stop pipeline")
     }
 }
