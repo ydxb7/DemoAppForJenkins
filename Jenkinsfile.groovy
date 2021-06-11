@@ -53,8 +53,23 @@ pipeline {
         stage("check files") {
             steps {
                 echo 'checking files...'
-                unstash name:"test1"
-                unstash name:"test2"
+                script {
+                    try {
+                        echo 'try to unstash test1'
+                        unstash name:"test1"
+                        echo 'unstash test1 success'
+                    } catch (Exception e) {
+                        echo 'cant unstash test1'
+                    }
+
+                    try {
+                        echo 'try to unstash test2'
+                        unstash name:"test2"
+                        echo 'unstash test2 success'
+                    } catch (err) {
+                        echo 'cant unstash test2'
+                    }
+                }
             }
         }
 
