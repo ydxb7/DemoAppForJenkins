@@ -16,12 +16,15 @@ pipeline {
             parallel {
                 stage("test1") {
                     steps {
-                        echo 'test1'
 //                        writeFile file: "test1", text: "test1"
 //                        stash name: "test1", includes: "test1"
 //                        script {
 //                            throw new Exception("Throw to stop pipeline")
 //                        }
+                        testWithCheck("test1") {
+                            writeFile file: "test1", text: "test1"
+                            stash name: "test1", includes: "test1"
+                        }
                     }
                     post {
                         success {
@@ -38,9 +41,10 @@ pipeline {
 
                 stage("test2") {
                     steps {
-                        echo 'test2'
-                        writeFile file: "test2", text: "test2"
-                        stash name: "test2", includes: "test2"
+                        testWithCheck("test2") {
+                            writeFile file: "test2", text: "test2"
+                            stash name: "test2", includes: "test2"
+                        }
                         script {
                             def test = 2 + 2 > 3 ? 'cool' : 'not cool'
                             echo test
@@ -53,23 +57,8 @@ pipeline {
         stage("check files") {
             steps {
                 echo 'checking files...'
-                script {
-                    try {
-                        echo 'try to unstash test1'
-                        unstash name:"test1"
-                        echo 'unstash test1 success'
-                    } catch (Exception e) {
-                        echo 'cant unstash test1'
-                    }
-
-                    try {
-                        echo 'try to unstash test2'
-                        unstash name:"test2"
-                        echo 'unstash test2 success'
-                    } catch (err) {
-                        echo 'cant unstash test2'
-                    }
-                }
+                unstash name:"test1"
+                unstash name:"test2"
             }
         }
 
@@ -77,6 +66,19 @@ pipeline {
             steps {
                 echo 'clean up..'
             }
+        }
+    }
+}
+
+def testWithCheck(String blockName, Closure closure) {
+    script {
+        try {
+            echo "try to unstash ${blockName}"
+            unstash name:"${blockName}"
+            echo "${blockName} already exist, skip testing it again"
+        } catch (Exception e) {
+            echo "testing ${blockName}"
+            closure.call()
         }
     }
 }
