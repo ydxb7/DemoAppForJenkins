@@ -12,19 +12,20 @@ pipeline {
             }
         }
 
-        stage("all test") {
+        stage("test1 and test2") {
             parallel {
                 stage("test1") {
                     steps {
-//                        writeFile file: "test1", text: "test1"
-//                        stash name: "test1", includes: "test1"
-//                        script {
-//                            throw new Exception("Throw to stop pipeline")
-//                        }
-
-                        testWithCheck("test1") {
-                            writeFile file: "test1", text: "test1"
-                            stash name: "test1", includes: "test1"
+                        script {
+                            try {
+                                echo "try to unstash test1"
+                                unstash name: "test1"
+                                echo "test1 already exist, skip testing it again"
+                            } catch (Exception e) {
+                                echo "testing test1"
+                                writeFile file: "test1", text: "test1"
+                                stash name: "test1", includes: "test1"
+                            }
                         }
                     }
                     post {
@@ -72,11 +73,6 @@ pipeline {
 }
 
 def testWithCheck(String blockName, Closure closure) {
-    File storage = storage(build, name)
-    if (!storage.isFile()) {
-        echo "not exist"
-    }
-
     try {
         echo "try to unstash ${blockName}"
         unstash name: "${blockName}"
