@@ -3,7 +3,7 @@ pipeline {
 
     options {
         timeout(time: 4, unit: 'HOURS')
-        preserveStashes()
+        preserveStashes(buildCount: 5)
     }
 
     stages {
