@@ -23,7 +23,7 @@ pipeline {
                     }
                     post {
                         success {
-                            stash name: "test1", includes: "test3.txt"
+                            stash name: "test1", includes: "test1.txt"
                             echo 'I succeeded!'
                         }
                         failure {
