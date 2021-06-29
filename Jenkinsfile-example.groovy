@@ -2,10 +2,17 @@
 def withCheck(String blockName, Closure closure) {
     script {
         def buildStage = true
-        catchError(message: 'check previous build status', stageResult:'SUCCESS', buildResult: 'SUCCESS') {
+//        catchError(message: 'check previous build status', stageResult:'SUCCESS', buildResult: 'SUCCESS') {
+//            unstash name:"${blockName}"
+//            buildStage = false
+//        }
+        try {
             unstash name:"${blockName}"
+        } catch (AbortException exception) {
             buildStage = false
+            echo "check previous build status: ${exception}"
         }
+
 
         if (buildStage) {
             closure.call()
