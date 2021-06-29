@@ -68,12 +68,14 @@ pipeline {
 
 def testWithCheck(String blockName, Closure closure) {
     def needTest = true
-    catchError(message: 'check previous build status', stageResult:'SUCCESS', buildResult: 'SUCCESS') {
+//    catchError(message: 'check previous build status', stageResult:'SUCCESS', buildResult: 'SUCCESS') {
         echo "try to unstash ${blockName}"
         unstash name:"${blockName}"
         needTest = false
         echo "${blockName} already exist, skip testing it again"
-    }
+//    }
+
+
 
     if (needTest) {
         closure.call()
