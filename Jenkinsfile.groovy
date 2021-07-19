@@ -17,8 +17,9 @@ pipeline {
             parallel {
                 stage("test1") {
                     steps {
-                        testWithCheck("test1") {
-                            runTest("test1")
+                        runIfStashIsNotExist("test1", "test1") {
+//                            runTest("test1")
+                            echo 'run test1'
                         }
                     }
                     post {
@@ -37,7 +38,7 @@ pipeline {
 
                 stage("test2") {
                     steps {
-                        testWithCheck("test2") {
+                        runIfStashIsNotExist("test2", "test2") {
                             writeFile file: "test2", text: "test2"
                             stash name: "test2", includes: "test2"
                         }
@@ -66,28 +67,27 @@ pipeline {
     }
 }
 
-def testWithCheck(String blockName, Closure closure) {
+def runIfStashIsNotExist(String stashName, String testName, Closure closure) {
     def needTest = true
-    catchError(message: 'check previous build status', stageResult:'SUCCESS', buildResult: 'SUCCESS') {
-        echo "try to unstash ${blockName}"
-        unstash name:"${blockName}"
+    catchError(message: "check previous build status of ${testName}", stageResult:'SUCCESS', buildResult: 'SUCCESS') {
+        unstash name:"${stashName}"
         needTest = false
-        echo "${blockName} already exist, skip testing it again"
+        echo "${testName} already passed last time, skip ${testName}."
     }
 
     if (needTest) {
+        echo "${stashName} does not exist, start ${testName}..."
         closure.call()
-        echo "testing ${blockName}"
     }
 }
 
-def runTest(String testName) {
-    Random rnd = new Random()
-    def fail = rnd.nextInt(4) % 2  == 0 ? "fail" : "success"
-    if (fail == "success") {
-        echo "testing ${testName}"
-        writeFile file: "${testName}.txt", text: "${testName}"
-    } else {
-        throw new Exception("Throw to stop pipeline")
-    }
-}
+//def runTest(String testName) {
+//    Random rnd = new Random()
+//    def fail = rnd.nextInt(4) % 2  == 0 ? "fail" : "success"
+//    if (fail == "success") {
+//        echo "testing ${testName}"
+//        writeFile file: "${testName}.txt", text: "${testName}"
+//    } else {
+//        throw new Exception("Throw to stop pipeline")
+//    }
+//}
