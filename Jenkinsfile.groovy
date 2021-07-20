@@ -21,7 +21,7 @@ pipeline {
                 stage("test1") {
                     steps {
                         script {
-                            runTest1 = runIfStashIsNotExist("test1", "test1")
+                            runTest1 = !doesStashExist("test1", "test1")
                             if (runTest1) {
                                 runTest("test1")
                             } else {
@@ -31,7 +31,11 @@ pipeline {
                     }
                     post {
                         success {
-                            stash name: "test1", includes: "test1.txt"
+                            script {
+                                if (runTest1) {
+                                    stash name: "test1", includes: "test1.txt"
+                                }
+                            }
                             echo 'I succeeded!'
                         }
                         failure {
@@ -46,7 +50,7 @@ pipeline {
                 stage("test2") {
                     steps {
                         script {
-                            runTest2 = runIfStashIsNotExist("test2", "test2")
+                            runTest2 = !doesStashExist("test2", "test2")
                             if (runTest2) {
                                 echo "run test2"
                                 writeFile file: "test2.txt", text: "test2"
@@ -80,19 +84,19 @@ pipeline {
     }
 }
 
-def runIfStashIsNotExist(String stashName, String testName) {
-    def needTest = true
-    catchError(message: "check previous build status of ${testName}", stageResult:'SUCCESS', buildResult: 'SUCCESS') {
-        unstash name:"${stashName}"
-        echo "${testName} already passed last time, skip ${testName}."
-        needTest =  false
-    }
-
-    if (needTest) {
-        echo "${stashName} does not exist, start ${testName}..."
-    }
-    return needTest
-}
+//def runIfStashIsNotExist(String stashName, String testName) {
+//    def needTest = true
+//    catchError(message: "check previous build status of ${testName}", stageResult:'SUCCESS', buildResult: 'SUCCESS') {
+//        unstash name:"${stashName}"
+//        echo "${testName} already passed last time, skip ${testName}."
+//        needTest =  false
+//    }
+//
+//    if (needTest) {
+//        echo "${stashName} does not exist, start ${testName}..."
+//    }
+//    return needTest
+//}
 
 def runTest(String testName) {
     Random rnd = new Random()
@@ -103,4 +107,18 @@ def runTest(String testName) {
     } else {
         throw new Exception("Throw to stop pipeline")
     }
+}
+
+def doesStashExist(String stashName, String testName) {
+    def doesStashExist = false
+    catchError(message: "check previous build status of ${testName}", stageResult:'SUCCESS', buildResult: 'SUCCESS') {
+        unstash name:"${stashName}"
+        doesStashExist = true
+        echo "${testName} already passed last time, skip ${testName}."
+    }
+
+    if (!doesStashExist) {
+        echo "${stashName} does not exist, start ${testName}..."
+    }
+    return doesStashExist
 }
