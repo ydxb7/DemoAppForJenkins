@@ -23,7 +23,7 @@ pipeline {
                         script {
                             runTest1 = runIfStashIsNotExist("test1", "test1")
                             if (runTest1) {
-                                echo "run test1"
+                                runTest("test1")
                             } else {
                                 echo "skip test1"
                             }
@@ -81,23 +81,26 @@ pipeline {
 }
 
 def runIfStashIsNotExist(String stashName, String testName) {
+    def needTest = true
     catchError(message: "check previous build status of ${testName}", stageResult:'SUCCESS', buildResult: 'SUCCESS') {
         unstash name:"${stashName}"
         echo "${testName} already passed last time, skip ${testName}."
-        return false
+        needTest =  false
     }
 
-    echo "${stashName} does not exist, start ${testName}..."
-    return true
+    if (needTest) {
+        echo "${stashName} does not exist, start ${testName}..."
+    }
+    return needTest
 }
 
-//def runTest(String testName) {
-//    Random rnd = new Random()
-//    def fail = rnd.nextInt(4) % 2  == 0 ? "fail" : "success"
-//    if (fail == "success") {
-//        echo "testing ${testName}"
-//        writeFile file: "${testName}.txt", text: "${testName}"
-//    } else {
-//        throw new Exception("Throw to stop pipeline")
-//    }
-//}
+def runTest(String testName) {
+    Random rnd = new Random()
+    def fail = rnd.nextInt(4) % 2  == 0 ? "fail" : "success"
+    if (fail == "success") {
+        echo "testing ${testName}"
+        writeFile file: "${testName}.txt", text: "${testName}"
+    } else {
+        throw new Exception("Throw to stop pipeline")
+    }
+}
