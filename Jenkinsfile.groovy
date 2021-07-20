@@ -49,6 +49,7 @@ pipeline {
                             runTest2 = runIfStashIsNotExist("test2", "test2")
                             if (runTest2) {
                                 echo "run test2"
+                                writeFile file: "test2.txt", text: "test2"
                                 stash name: "test2", includes: "test2.txt"
                             } else {
                                 echo "skip test2"
