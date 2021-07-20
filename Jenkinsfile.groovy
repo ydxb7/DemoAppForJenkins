@@ -1,3 +1,6 @@
+def runTest1 = false
+def runTest2 = false
+
 pipeline {
     agent any
 
@@ -17,9 +20,13 @@ pipeline {
             parallel {
                 stage("test1") {
                     steps {
-                        runIfStashIsNotExist("test1", "test1") {
-//                            runTest("test1")
-                            echo 'run test1'
+                        script {
+                            runTest1 = runIfStashIsNotExist("test1", "test1")
+                            if (runTest1) {
+                                echo "run test1"
+                            } else {
+                                echo "skip test1"
+                            }
                         }
                     }
                     post {
@@ -38,9 +45,14 @@ pipeline {
 
                 stage("test2") {
                     steps {
-                        runIfStashIsNotExist("test2", "test2") {
-                            writeFile file: "test2", text: "test2"
-                            stash name: "test2", includes: "test2"
+                        script {
+                            runTest2 = runIfStashIsNotExist("test2", "test2")
+                            if (runTest2) {
+                                echo "run test2"
+                                stash name: "test2", includes: "test2.txt"
+                            } else {
+                                echo "skip test2"
+                            }
                         }
                         script {
                             def test = 2 + 2 > 3 ? 'cool' : 'not cool'
@@ -67,18 +79,15 @@ pipeline {
     }
 }
 
-def runIfStashIsNotExist(String stashName, String testName, Closure closure) {
-    def needTest = true
+def runIfStashIsNotExist(String stashName, String testName) {
     catchError(message: "check previous build status of ${testName}", stageResult:'SUCCESS', buildResult: 'SUCCESS') {
         unstash name:"${stashName}"
-        needTest = false
         echo "${testName} already passed last time, skip ${testName}."
+        return false
     }
 
-    if (needTest) {
-        echo "${stashName} does not exist, start ${testName}..."
-        closure.call()
-    }
+    echo "${stashName} does not exist, start ${testName}..."
+    return true
 }
 
 //def runTest(String testName) {
